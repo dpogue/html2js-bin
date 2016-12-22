@@ -103,7 +103,7 @@ Contributing
 
 Contributions of bug reports, feature requests, and pull requests are greatly appreciated!
 
-Please note that this project is released with a [Contributor Code of Conduct](https://github.com/dpogue/skytrain-service-map/blob/master/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+Please note that this project is released with a [Contributor Code of Conduct](https://github.com/dpogue/html2js-bin/blob/master/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 
 Licence
