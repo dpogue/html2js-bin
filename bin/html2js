@@ -1,0 +1,97 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var path = require('path');
+var commands = require('commander');
+
+var packageConfig = fs.readFileSync(path.join(path.dirname(fs.realpathSync(process.argv[1])), '../package.json'));
+var buildVersion = JSON.parse(packageConfig).version;
+
+commands
+    .version(buildVersion, '-v, --version')
+    .usage('[options] <input-file>')
+    .option('-o, --output [output-file]', 'Use [output-file] as output instead of stdout')
+    .option('-t, --template [template-file]', 'Use [template-file] as a wrapper')
+    .option('-p, --pattern [pattern]', 'Replace [pattern] in the template')
+    ;
+
+commands.parse(process.argv);
+
+var source = null;
+var fromStdin = !process.env.__DIRECT__ && !process.stdin.isTTY;
+
+if (!fromStdin && commands.args.length === 0) {
+    commands.outputHelp();
+    return 0;
+}
+
+if (commands.args.length > 0) {
+    source = commands.args[0];
+}
+
+if (source) {
+    fs.readFile(source, 'utf8', function(err, data) {
+        if (err) {
+            throw err;
+        }
+
+        // Strip trailing CRLF
+        data = data.replace(/\r?\n$/, '');
+
+        if (commands.template) {
+            templateInject(escapeHtml(data));
+        } else {
+            output(escapeHtml(data));
+        }
+    });
+} else {
+    var data = '';
+
+    var stdin = process.openStdin();
+    stdin.setEncoding('utf-8');
+
+    stdin.on('data', function(chunk) { data += chunk; });
+    stdin.on('end', function() {
+        // Strip trailing CRLF
+        data = data.replace(/\r?\n$/, '');
+
+        if (commands.template) {
+            templateInject(escapeHtml(data));
+        } else {
+            output(escapeHtml(data));
+        }
+    });
+}
+
+
+function escapeHtml(html) {
+    var bsRegex = /\\/g;
+    var quRegex = /'/g;
+    var nlRegex = /\r?\n/g;
+    var nlReplace = "\\n' +\n'";
+
+    return "'" + html.replace(bsRegex, "\\\\").replace(quRegex, "\\'").replace(nlRegex, nlReplace) + "'";
+}
+
+function templateInject(str) {
+    fs.readFile(commands.template, 'utf8', function(err, tpl) {
+        if (err) {
+            throw err;
+        }
+
+        if (commands.pattern) {
+            var rendered = tpl.replace(new RegExp(commands.pattern), str);
+            output(rendered);
+        } else {
+            output(tpl + str);
+        }
+    });
+}
+
+function output(str) {
+    if (commands.output) {
+        fs.writeFileSync(commands.output, str, 'utf8');
+    } else {
+        process.stdout.write(str);
+    }
+}

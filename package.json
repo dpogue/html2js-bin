@@ -1,0 +1,13 @@
+{
+  "name": "html2js-bin",
+  "version": "1.0.0",
+  "description": "Command-line HTML inlining tool",
+  "bin": {
+      "html2js": "./bin/html2js"
+  },
+  "author": "Darryl Pogue <darryl@dpogue.ca>",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0"
+  }
+}
